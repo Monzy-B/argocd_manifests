@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: tomiwadevops/prod-repo
+  repository: tomiwadevops/dev-repo
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -105,3 +105,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+argocd:
+  applicationName: ArgoCD Project
+  namespace: acd
+  project: default
+  repoURL: https://github.com/Monzy-B/argocd_manifests
+  targetRevision: main
+  path: k8s/helm
+  destination:
+    server: https://192.168.49.2:8443
+    namespace: acd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
