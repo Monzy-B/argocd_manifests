@@ -107,7 +107,7 @@ tolerations: []
 affinity: {}
 
 argocd:
-  applicationName: ArgoCD Project
+  applicationName: default
   namespace: acd
   project: default
   repoURL: https://github.com/Monzy-B/argocd_manifests

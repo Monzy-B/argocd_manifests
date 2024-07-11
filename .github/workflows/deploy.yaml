@@ -18,7 +18,7 @@ jobs:
        uses: tj-actions/branch-names@v8
 
      - name: Deploy to Cluster
-       if: (github.ref == 'refs/heads/main')
+      #  if: (github.ref == 'refs/heads/main')
        run: |
          helm upgrade --install argo-${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}} ./k8s/helm \
          --namespace acd \
