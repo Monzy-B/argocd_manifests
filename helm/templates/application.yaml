@@ -6,13 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    chart: dev-0.1.0
     repoURL: https://github.com/Monzy-B/argocd_manifests
-    targetRevision: 1.16.1
-    helm:
-      valueFiles: 
-        - ./helm/helmvars/alpha/values.yaml
-      releaseName: argo-dev
+    targetRevision: development
+    path: ./
   destination:
     server: https://kubernetes.default.svc
     namespace: acd

@@ -1,84 +1,92 @@
-# name: Apply Helm Configurations to Cluster
-# on: 
-#   push:
-#     branches:
-#      - main
-#      - development
+name: Apply Helm Configurations to Cluster
+on: 
+  push:
+    branches:
+     - main
+     - development
 
-# jobs: 
-#  minikube:
-#     runs-on: ubuntu-latest
-#     name: Testing Minikube
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Start minikube
-#       uses: medyagh/setup-minikube@master
-#     - name: Try the cluster !
-#       run: |
-#        kubectl get pods -A
-#        kubectl config use-context minikube
-#        kubectl config current-context
-
-
-#  release-to-k8s:
-#    name: "Release to Cluster"
-#    runs-on: ubuntu-latest
-#    needs: [minikube]
-
-#    steps:
-#      - uses: actions/checkout@v4
-
-#      - name: Get branch names.
-#        id: branch-names
-#        uses: tj-actions/branch-names@v8
-
-#      - name: Deploy to Cluster
-#       #  if: (github.ref == 'refs/heads/main')
-#        run: |
-#          helm upgrade --install argo-${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}} ./k8s/helm \
-#          --namespace acd \
-#          --values ./k8s/helm/helmvars/${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}}/values.yaml \
-#          --timeout 5m0s --create-namespace --debug
-
-#         #  if [[ "${{ steps.branch-names.outputs.ref_branch }}" == "main" ]]; then
-#         #    helm upgrade --install argo-prod ./k8s/helm \
-#         #    --namespace acd \
-#         #    --values ./k8s/helm/helmvars/prod/values.yaml \
-#         #    --timeout 5m0s --create-namespace --debug
-#         #  else
-#         #    helm upgrade --install argo-alpha ./k8s/helm \
-#         #    --namespace acd \
-#         #    --values ./k8s/helm/helmvars/alpha/values.yaml \
-#         #    --timeout 5m0s --create-namespace --debug
-#         #  fi
-
-
-name: Deploy to Minikube using GitHub Actions
-
-on: [push]
-  
-jobs:
-  job1:
+jobs: 
+ minikube:
     runs-on: ubuntu-latest
-    name: build Node.js Docker Image and deploy to minikube
+    name: Testing Minikube
     steps:
     - uses: actions/checkout@v2
     - name: Start minikube
       uses: medyagh/setup-minikube@master
     - name: Try the cluster !
-      run: kubectl get pods -A
-    - name: Build image
       run: |
-          export SHELL=/bin/bash
-          eval $(minikube -p minikube docker-env)
-          docker build -f ./minikube/Dockerfile -t devopshint/node-app:latest .
-          echo -n "verifying images:"
-          docker images         
-    - name: Deploy to minikube
-      run:
-        kubectl apply -f ./minikube/k8s-node-app.yaml
-    - name: Test service URLs
-      run: |
-          minikube service list
-          minikube service nodejs-app --url
+       kubectl get pods -A
+       kubectl config use-context minikube
+       kubectl config current-context
+
+
+ release-to-k8s:
+   name: "Release to Cluster"
+   runs-on: ubuntu-latest
+   needs: [minikube]
+
+   steps:
+     - uses: actions/checkout@v4
+
+     - name: Get branch names.
+       id: branch-names
+       uses: tj-actions/branch-names@v8
+
+     - name: Deploy
+       run: |
+         helm template ./helm --values ./helm/helmvars/alpha/values.yaml > output.yaml
+         kubectl apply -f output.yaml
+       env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+
+
+    #  - name: Deploy to Cluster
+    #   #  if: (github.ref == 'refs/heads/main')
+    #    run: |
+    #      helm upgrade --install argo-${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}} ./k8s/helm \
+    #      --namespace acd \
+    #      --values ./k8s/helm/helmvars/${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}}/values.yaml \
+    #      --timeout 5m0s --create-namespace --debug
+
+        #  if [[ "${{ steps.branch-names.outputs.ref_branch }}" == "main" ]]; then
+        #    helm upgrade --install argo-prod ./k8s/helm \
+        #    --namespace acd \
+        #    --values ./k8s/helm/helmvars/prod/values.yaml \
+        #    --timeout 5m0s --create-namespace --debug
+        #  else
+        #    helm upgrade --install argo-alpha ./k8s/helm \
+        #    --namespace acd \
+        #    --values ./k8s/helm/helmvars/alpha/values.yaml \
+        #    --timeout 5m0s --create-namespace --debug
+        #  fi
+
+
+# name: Deploy to Minikube using GitHub Actions
+
+# on: [push]
+  
+# jobs:
+#   job1:
+#     runs-on: ubuntu-latest
+#     name: build Node.js Docker Image and deploy to minikube
+#     steps:
+#     - uses: actions/checkout@v2
+#     - name: Start minikube
+#       uses: medyagh/setup-minikube@master
+#     - name: Try the cluster !
+#       run: kubectl get pods -A
+#     - name: Build image
+#       run: |
+#           export SHELL=/bin/bash
+#           eval $(minikube -p minikube docker-env)
+#           docker build -f ./minikube/Dockerfile -t devopshint/node-app:latest .
+#           echo -n "verifying images:"
+#           docker images         
+#     - name: Deploy to minikube
+#       run:
+#         kubectl apply -f ./minikube/k8s-node-app.yaml
+#     - name: Test service URLs
+#       run: |
+#           minikube service list
+#           minikube service nodejs-app --url
 
