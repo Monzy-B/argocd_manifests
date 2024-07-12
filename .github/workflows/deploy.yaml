@@ -14,11 +14,16 @@ jobs:
     - name: Start minikube
       uses: medyagh/setup-minikube@master
     - name: Try the cluster !
-      run: kubectl get pods -A
+      run: |
+       kubectl get pods -A
+       kubectl config use-context minikube
+       kubectl config current-context
+
 
  release-to-k8s:
    name: "Release to Cluster"
    runs-on: ubuntu-latest
+   needs: [minikube]
 
    steps:
      - uses: actions/checkout@v4
@@ -34,5 +39,17 @@ jobs:
          --namespace acd \
          --values ./k8s/helm/helmvars/${{ steps.branch-names.outputs.ref_branch == 'main' && 'prod' || 'alpha'}}/values.yaml \
          --timeout 5m0s --create-namespace --debug
+
+        #  if [[ "${{ steps.branch-names.outputs.ref_branch }}" == "main" ]]; then
+        #    helm upgrade --install argo-prod ./k8s/helm \
+        #    --namespace acd \
+        #    --values ./k8s/helm/helmvars/prod/values.yaml \
+        #    --timeout 5m0s --create-namespace --debug
+        #  else
+        #    helm upgrade --install argo-alpha ./k8s/helm \
+        #    --namespace acd \
+        #    --values ./k8s/helm/helmvars/alpha/values.yaml \
+        #    --timeout 5m0s --create-namespace --debug
+        #  fi
 
 
